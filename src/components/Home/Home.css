@@ -17,6 +17,12 @@
     background-color:white
 }
 
+.Home-Content-Result {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .Home-Content-Container::-webkit-scrollbar {
     display: none; /* for Chrome, Safari, and Opera */
 }
