@@ -1,57 +1,79 @@
-import { Button, Cascader, Form, Input } from 'antd';
-import {db} from '../firebase-config';
+import { Button, Cascader, Form, Input, Space, Divider } from 'antd';
+import { GoogleOutlined, FacebookOutlined } from '@ant-design/icons';
+import { db, authentication } from '../firebase-config';
 import { collection, addDoc, updateDoc, doc, onSnapshot, query, arrayUnion } from 'firebase/firestore'
 import { useEffect, useState } from 'react';
-// import { signInWithPopup, GoogleAuthProvider,  } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 
 const RegisterForm = () => {
-    // const registerWithGoogle = ()=>{
-    //     const provider = new GoogleAuthProvider();
-    //     signInWithPopup(authentication, provider)
-    //     .then(res=>console.log(res))
-    //     .catch(error=>console.log(error))
-    // }
-    const [courses, setCourses] = useState([])
-    const [searchableCourses,setSearchableCourses] = useState([])
-    const [form] = Form.useForm();
-    const onFinish = async(values) => {
-        let newCoursesList = values.coursesList.map(ele=>ele[0])
-        let data = {...values,coursesList:newCoursesList}
-        try{
-            let res = await addDoc(collection(db, "students"),{
-                data,
-                completed:false
+    const registerWithGoogle = () => {
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(authentication, provider)
+            .then(res => {
+                form.setFieldsValue({
+                    firstName: res.user.displayName.split(' ')[0],
+                    middleName: res.user.displayName.split(' ')[1],
+                    email: res.user.email
+                });
             })
-            newCoursesList.map(async (course)=>{
-                let index = searchableCourses.findIndex(ele=>ele.courseName === course)
-                await updateDoc(doc(db, "courses", searchableCourses[index].id),{
+            .catch(error => console.log(error))
+    }
+
+    const registerWithFacebook = () => {
+        const provider = new FacebookAuthProvider();
+        signInWithPopup(authentication, provider)
+            .then(res => {
+                form.setFieldsValue({
+                    firstName: res.user.displayName.split(' ')[0],
+                    middleName: res.user.displayName.split(' ')[1],
+                    email: res.user.email
+                });
+            })
+            .catch(error => console.log(error))
+    }
+
+    const [courses, setCourses] = useState([])
+    const [searchableCourses, setSearchableCourses] = useState([])
+    const [form] = Form.useForm();
+    const onFinish = async (values) => {
+        let newCoursesList = values.coursesList.map(ele => ele[0])
+        let data = { ...values, coursesList: newCoursesList }
+        try {
+            let res = await addDoc(collection(db, "students"), {
+                data,
+                completed: false
+            })
+            newCoursesList.map(async (course) => {
+                let index = searchableCourses.findIndex(ele => ele.courseName === course)
+                await updateDoc(doc(db, "courses", searchableCourses[index].id), {
                     students: arrayUnion(res.id)
                 })
             })
             form.resetFields();
         }
-        catch(error){
+        catch (error) {
             console.log(error)
         }
-        
+
     };
 
     const onReset = () => {
         form.resetFields();
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         const q = query(collection(db, 'courses'));
-        const unsub = onSnapshot(q, (querySnapshot)=>{
+        const unsub = onSnapshot(q, (querySnapshot) => {
+            // one array for displaying cascader options (ant design component) and the other one with full information to apply any operations on db 
             let disblayedCourses = []
             let searchableCourses = []
-            querySnapshot.forEach(doc=>disblayedCourses.push({value:doc.data().courseName, label:doc.data().courseName}))
-            querySnapshot.forEach(doc=>searchableCourses.push({...doc.data(),id:doc.id}))
+            querySnapshot.forEach(doc => disblayedCourses.push({ value: doc.data().courseName, label: doc.data().courseName }))
+            querySnapshot.forEach(doc => searchableCourses.push({ ...doc.data(), id: doc.id }))
             setSearchableCourses(searchableCourses)
             setCourses(disblayedCourses)
         })
-        return ()=> unsub()
-    },[])
+        return () => unsub()
+    }, [])
 
     return (
         <Form
@@ -104,11 +126,11 @@ const RegisterForm = () => {
                     },
                     {
                         pattern: /^[0-9]+$/,
-                        message:'Must be only numbers'
+                        message: 'Must be only numbers'
                     },
                     {
                         len: 11,
-                        message:'Must be exactly 11 numbers'
+                        message: 'Must be exactly 11 numbers'
                     }
                 ]}
             >
@@ -123,11 +145,11 @@ const RegisterForm = () => {
                     },
                     {
                         pattern: /^[0-9]+$/,
-                        message:'Must be only numbers'
+                        message: 'Must be only numbers'
                     },
                     {
                         len: 14,
-                        message:'Must be exactly 14 numbers'
+                        message: 'Must be exactly 14 numbers'
                     }
                 ]}
             >
@@ -228,15 +250,20 @@ const RegisterForm = () => {
             </Form.Item>
 
             <Form.Item>
-                <Button type="primary" htmlType="submit">
-                    Register
-                </Button>
-                {/* <Button type="danger" htmlType="button" onClick={registerWithGoogle}>
-                    Sign up with google
-                </Button> */}
-                <Button htmlType="button" onClick={onReset}>
-                    Reset
-                </Button>
+                <Space split={<Divider type="vertical" />} size={10}>
+                    <Button type="primary" htmlType="submit" size='large'>
+                        Register
+                    </Button>
+                    <Button type="danger" icon={<GoogleOutlined />} htmlType="button" onClick={registerWithGoogle} size='large'>
+                        Register with google
+                    </Button>
+                    <Button type="primary" icon={<FacebookOutlined />} htmlType="button" onClick={registerWithFacebook} size='large'>
+                        Register with facebook
+                    </Button>
+                    <Button htmlType="button" onClick={onReset} style={{textAlign:'right'}} size='large'>
+                        Reset
+                    </Button>
+                </Space>
             </Form.Item>
         </Form>
     );
