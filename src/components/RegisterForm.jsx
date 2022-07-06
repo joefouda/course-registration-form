@@ -1,40 +1,57 @@
-import { Button, Cascader, Form, Input, InputNumber } from 'antd';
-import React from 'react';
-
-const courses = [
-    {
-        label: 'html',
-        value: 'html',
-    },
-    {
-        label: 'javascript',
-        value: 'javascript',
-    },
-    {
-        label: 'css',
-        value: 'css',
-    },
-    {
-        label: 'jquery',
-        value: 'jquery',
-    },
-    {
-        label: 'bootstrap',
-        value: 'bootstrap',
-    }
-]
+import { Button, Cascader, Form, Input } from 'antd';
+import {db} from '../firebase-config';
+import { collection, addDoc, updateDoc, doc, onSnapshot, query, arrayUnion } from 'firebase/firestore'
+import { useEffect, useState } from 'react';
+// import { signInWithPopup, GoogleAuthProvider,  } from "firebase/auth";
 
 const RegisterForm = () => {
+    // const registerWithGoogle = ()=>{
+    //     const provider = new GoogleAuthProvider();
+    //     signInWithPopup(authentication, provider)
+    //     .then(res=>console.log(res))
+    //     .catch(error=>console.log(error))
+    // }
+    const [courses, setCourses] = useState([])
+    const [searchableCourses,setSearchableCourses] = useState([])
     const [form] = Form.useForm();
-    const onFinish = (values) => {
-        let data = {...values,coursesList:values.coursesList.map(ele=>ele[0])}
-        console.log('Success:', data);
-        form.resetFields();
+    const onFinish = async(values) => {
+        let newCoursesList = values.coursesList.map(ele=>ele[0])
+        let data = {...values,coursesList:newCoursesList}
+        try{
+            let res = await addDoc(collection(db, "students"),{
+                data,
+                completed:false
+            })
+            newCoursesList.map(async (course)=>{
+                let index = searchableCourses.findIndex(ele=>ele.courseName === course)
+                await updateDoc(doc(db, "courses", searchableCourses[index].id),{
+                    students: arrayUnion(res.id)
+                })
+            })
+            form.resetFields();
+        }
+        catch(error){
+            console.log(error)
+        }
+        
     };
 
     const onReset = () => {
         form.resetFields();
     };
+
+    useEffect(()=>{
+        const q = query(collection(db, 'courses'));
+        const unsub = onSnapshot(q, (querySnapshot)=>{
+            let disblayedCourses = []
+            let searchableCourses = []
+            querySnapshot.forEach(doc=>disblayedCourses.push({value:doc.data().courseName, label:doc.data().courseName}))
+            querySnapshot.forEach(doc=>searchableCourses.push({...doc.data(),id:doc.id}))
+            setSearchableCourses(searchableCourses)
+            setCourses(disblayedCourses)
+        })
+        return ()=> unsub()
+    },[])
 
     return (
         <Form
@@ -212,8 +229,11 @@ const RegisterForm = () => {
 
             <Form.Item>
                 <Button type="primary" htmlType="submit">
-                    Submit
+                    Register
                 </Button>
+                {/* <Button type="danger" htmlType="button" onClick={registerWithGoogle}>
+                    Sign up with google
+                </Button> */}
                 <Button htmlType="button" onClick={onReset}>
                     Reset
                 </Button>
