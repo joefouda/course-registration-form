@@ -6,21 +6,8 @@ import { useEffect, useState } from 'react';
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 
 const RegisterForm = () => {
-    const registerWithGoogle = () => {
-        const provider = new GoogleAuthProvider();
-        signInWithPopup(authentication, provider)
-            .then(res => {
-                form.setFieldsValue({
-                    firstName: res.user.displayName.split(' ')[0],
-                    middleName: res.user.displayName.split(' ')[1],
-                    email: res.user.email
-                });
-            })
-            .catch(error => console.log(error))
-    }
-
-    const registerWithFacebook = () => {
-        const provider = new FacebookAuthProvider();
+    const OAuthRegister = (e) => {
+        const provider = e.target.innerHTML === 'Register with google'?new GoogleAuthProvider():new FacebookAuthProvider()
         signInWithPopup(authentication, provider)
             .then(res => {
                 form.setFieldsValue({
@@ -249,18 +236,18 @@ const RegisterForm = () => {
                 />
             </Form.Item>
 
-            <Form.Item>
-                <Space split={<Divider type="vertical" />} size={10}>
+            <Form.Item >
+                <Space size={8} wrap>
                     <Button type="primary" htmlType="submit" size='large'>
                         Register
                     </Button>
-                    <Button type="danger" icon={<GoogleOutlined />} htmlType="button" onClick={registerWithGoogle} size='large'>
+                    <Button type="danger" icon={<GoogleOutlined />} htmlType="button" onClick={OAuthRegister} size='large'>
                         Register with google
                     </Button>
-                    <Button type="primary" icon={<FacebookOutlined />} htmlType="button" onClick={registerWithFacebook} size='large'>
+                    <Button type="primary" icon={<FacebookOutlined />} htmlType="button" onClick={OAuthRegister} size='large'>
                         Register with facebook
                     </Button>
-                    <Button htmlType="button" onClick={onReset} style={{textAlign:'right'}} size='large'>
+                    <Button htmlType="button" onClick={onReset} style={{ textAlign: 'right' }} size='large'>
                         Reset
                     </Button>
                 </Space>
