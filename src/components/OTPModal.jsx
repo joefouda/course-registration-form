@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { Modal } from 'antd';
-import { Form, Input, notification,Button } from 'antd';
+import { Form, Input, Button } from 'antd';
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { db, authentication } from '../firebase-config';
 import { collection, addDoc, updateDoc, doc, arrayUnion } from 'firebase/firestore'
+import { NotificationContext } from '../App'
 
 const generateRecaptcha = () => {
     window.recaptchaVerifier = new RecaptchaVerifier('recaptcha-container', {
@@ -14,14 +15,8 @@ const generateRecaptcha = () => {
     }, authentication);
 }
 
-const openNotification = (eMessage) => {
-    notification.error({
-        message: eMessage,
-        placement: 'topLeft'
-    });
-};
-
 const OTPModal = (props) => {
+    const { openNotification } = useContext(NotificationContext)
     const [confirmLoading, setConfirmLoading] = useState(false);
     const [form] = Form.useForm();
 
@@ -58,7 +53,7 @@ const OTPModal = (props) => {
                     })
                     setConfirmLoading(false)
                     props.setOTPModalVisible(false)
-                    props.setEnrolled(true)
+                    props.isEnrolled()
                 }
                 catch (error) {
                     console.log(error.message)
@@ -70,9 +65,7 @@ const OTPModal = (props) => {
             }
 
         }).catch((error) => {
-            console.log(error.message)
             setConfirmLoading(false)
-            props.setOTPModalVisible(false)
             openNotification(error.message)
         });
     };
@@ -102,8 +95,8 @@ const OTPModal = (props) => {
                         <Input style={{ width: 'calc(100% - 200px)' }} defaultValue="https://ant.design" />
                         <Button type="primary">Submit</Button>
                     </Input.Group> */}
-                    <Form.Item 
-                        style={{display:'flex'}}
+                    <Form.Item
+                        style={{ display: 'flex' }}
                         name="OTPCode"
                         rules={[
                             {

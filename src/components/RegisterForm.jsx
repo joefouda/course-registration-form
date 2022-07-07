@@ -1,22 +1,14 @@
-import { useEffect, useState } from 'react';
-import { Button, Cascader, Form, Input, Space, notification } from 'antd';
-import { GoogleOutlined, FacebookOutlined, PropertySafetyFilled } from '@ant-design/icons';
+import { useEffect, useState, useContext } from 'react';
+import { Button, Cascader, Form, Input, Space } from 'antd';
+import { GoogleOutlined, FacebookOutlined } from '@ant-design/icons';
 import { db, authentication } from '../firebase-config';
 import { collection, onSnapshot, query } from 'firebase/firestore'
 import { signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 import OTPModal from './OTPModal';
-
-
-const openNotification = (eMessage) => {
-    notification.error({
-        message: eMessage,
-        placement: 'topLeft'
-    });
-}
+import { NotificationContext } from '../App'
 
 const RegisterForm = (props) => {
-    //use ref to call child function from parent function
-
+    const { openNotification } = useContext(NotificationContext)
     const [OTPModalVisible, setOTPModalVisible] = useState(false)
     const OAuthRegister = (e) => {
         const provider = e.target.innerHTML === 'Register with google' ? new GoogleAuthProvider() : new FacebookAuthProvider()
@@ -37,7 +29,7 @@ const RegisterForm = (props) => {
     const [registerForm] = Form.useForm();
     const onFinish = async (values) => {
         let newCoursesList = values.coursesList.map(ele => ele[0])
-        let data = { ...values, coursesList: newCoursesList,phoneNumber:`+20${values.phoneNumber}` }
+        let data = { ...values, coursesList: newCoursesList, phoneNumber: `+20${values.phoneNumber}` }
         setStudent(data)
         setOTPModalVisible(true)
     };
@@ -120,7 +112,7 @@ const RegisterForm = (props) => {
                         }
                     ]}
                 >
-                    <Input placeholder="Phone Number" size="large" addonBefore="+20"/>
+                    <Input placeholder="Phone Number" size="large" addonBefore="+20" />
                 </Form.Item>
 
                 <Form.Item
@@ -252,7 +244,7 @@ const RegisterForm = (props) => {
                     </Space>
                 </Form.Item>
             </Form>
-            <OTPModal searchableCourses={searchableCourses} student={student} registerForm={registerForm} OTPModalVisible={OTPModalVisible} setOTPModalVisible={setOTPModalVisible} setEnrolled={props.setEnrolled}/>
+            <OTPModal searchableCourses={searchableCourses} student={student} registerForm={registerForm} OTPModalVisible={OTPModalVisible} setOTPModalVisible={setOTPModalVisible} isEnrolled={props.isEnrolled} />
         </>
     );
 };

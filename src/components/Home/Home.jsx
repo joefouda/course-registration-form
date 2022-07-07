@@ -1,31 +1,28 @@
 import RegisterForm from "../RegisterForm";
 import photo from '../../images/RegisterPhoto.svg'
+import { Modal } from 'antd';
 import './Home.css'
-import { Col, Row, Result, Button } from 'antd'
-import { useState } from "react";
+import { Col, Row } from 'antd'
+
+const isEnrolled = () => {
+    Modal.success({
+        title: 'Registered Successfully',
+        content: `your registration is completed and you’ve enrolled in the course`,
+        centered:true,
+    });
+};
 
 const Home = () => {
-    const [enrolled, setEnrolled] = useState(false)
     return (
         <div className='Home-Container'>
-            {!enrolled ? <Row className='Home-Content-Container'>
-                <Col className='Home-Content-Image-Container' xs={24} sm={24} md={24} lg={12} xl={12}>
+            <Row className='Home-Content-Container'>
+                <Col className='Home-Content-Image-Container' xs={24} sm={24} md={24} lg={24} xl={12}>
                     <img src={photo} className='Home-Content-Image' />
                 </Col>
-                <Col xs={24} sm={24} md={24} lg={12} xl={12}>
-                    <RegisterForm setEnrolled={setEnrolled} />
+                <Col xs={24} sm={24} md={24} lg={24} xl={12}>
+                    <RegisterForm isEnrolled={isEnrolled} />
                 </Col>
-            </Row> : <Result
-                className='Home-Content-Container Home-Content-Result'
-                status="success"
-                title="Registered Successfully"
-                subTitle="your registration is completed and you’ve enrolled in the course"
-                extra={[
-                    <Button type="primary" key="console" onClick={()=>setEnrolled(false)}>
-                        Register New Student
-                    </Button>,
-                ]}
-            />}
+            </Row>
         </div>
     )
 }
